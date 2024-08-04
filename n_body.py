@@ -19,9 +19,6 @@ vel = np.random.uniform(-vel_range, vel_range, size=(n, 3))
 mass = np.random.uniform(mass_min, mass_max, size=(n))
 deleted = []
 
-def mag(v):
-    return np.sqrt(v[0]**2+v[1]**2+v[2]**2)
-
 def remove(arr, i):
     shape = (arr.shape[0]-1, arr.shape[1:])
     arr2 = np.zeros(shape=shape)
@@ -33,7 +30,7 @@ def a(i, pos, mass):
     a = 0
     pos_i = pos[i]
     pos_j = remove(pos, i)
-    mass_j = remove(pos, i)
+    mass_j = remove(mass, i)
     r = pos_j - pos_i
     r3 = np.sum(r**2, axis=1)**(3/2)
     a = G*np.sum(r*(mass_j/r3)[:,np.newaxis], axis=0)
@@ -45,15 +42,18 @@ def update_i(args):
     pos = pos1+vel*dt
     return i, pos, vel
 
-def update(num, pos=pos):
+def update(num):
     ax.cla()
     dt = 0.1
     t = num*dt
-    tasks = [(i, pos, vel, mass) for i in range]
-    for i in range(n):   
-        vel[i] = vel[i]+a(i)*dt
-        pos[i] = pos[i]+vel[i]*dt
-    for i in range(n):
+    tasks = [(i, pos, vel, mass) for i in range(n)]
+    results = []
+    if __name__ == '__main__':
+        with Pool(4) as pool:
+            results = pool.map(update_i, tasks)
+    for i, pos_i, vel_i in results:
+        pos[i] = pos_i
+        vel[i] = vel_i
         path[i][num] = pos[i]
         ax.scatter(pos[i][0], pos[i][1], pos[i][2], s=100*mass[i]**(1/3), marker="o")
         ax.plot([pos[0] for pos in path[i][0:num]], [pos[1] for pos in path[i][0:num]], [pos[2] for pos in path[i][0:num]])
