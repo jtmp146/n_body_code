@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FuncAnimation
 from multiprocessing import Pool
+import time as t
+import os
 
 # np.random.seed(19680807)
 
@@ -18,6 +20,12 @@ pos = np.random.uniform(-start_range, start_range, size=(n, 3))
 vel = np.random.uniform(-vel_range, vel_range, size=(n, 3))
 mass = np.random.uniform(mass_min, mass_max, size=(n))
 deleted = []
+
+def csv(pos):
+    line = ""
+    for vector in pos:
+        line += str(vector).replace("[", "").replace("]", "")+","
+    return line+"\n"
 
 def remove(arr, i):
     print(arr.shape, i)
@@ -61,7 +69,15 @@ def update(num):
 
 if __name__ == '__main__':
     with Pool(5) as pool:
+        start = t.time()
         dt = 0.1
+
+        if os.path.exists("n_body.txt"):
+            os.remove("n_body.txt")
+        
+        f = open("n_body.txt", "a")
+
+        f.write("frame, position\n")
         for frame in range(length):
             tasks = [(i, pos, vel, mass, dt) for i in range(n)]
             results = pool.map(step_i, tasks)
@@ -69,6 +85,10 @@ if __name__ == '__main__':
                 pos[i] = pos_i
                 vel[i] = vel_i
                 mass[i] = mass_i
+            f.write(csv(pos))
+    f.close()
+    stop = t.time()
+    print("Runtime:", stop-start)
 
 # fig = plt.figure(dpi=100)
 # ax = fig.add_subplot(projection='3d')
