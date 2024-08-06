@@ -20,6 +20,7 @@ mass = np.random.uniform(mass_min, mass_max, size=(n))
 deleted = []
 
 def remove(arr, i):
+    print(arr.shape, i)
     shape = (arr.shape[0]-1, arr.shape[1:])
     arr2 = np.zeros(shape=shape)
     arr2[:i] = arr[:i]
@@ -29,18 +30,18 @@ def remove(arr, i):
 def a(i, pos, mass):
     a = 0
     pos_i = pos[i]
-    pos_j = remove(pos, i)
-    mass_j = remove(mass, i)
+    pos_j = np.delete(pos, i, 0)
+    mass_j = np.delete(mass, i, 0)
     r = pos_j - pos_i
     r3 = np.sum(r**2, axis=1)**(3/2)
     a = G*np.sum(r*(mass_j/r3)[:,np.newaxis], axis=0)
     return a
 
-def update_i(args):
-    i, pos1, vel1, mass = args
+def step_i(args):
+    i, pos1, vel1, mass, dt = args
     vel = vel1+a(i, pos1, mass)*dt
     pos = pos1+vel*dt
-    return i, pos, vel
+    return (i, pos, vel, mass)
 
 def update(num):
     ax.cla()
@@ -58,10 +59,21 @@ def update(num):
         ax.scatter(pos[i][0], pos[i][1], pos[i][2], s=100*mass[i]**(1/3), marker="o")
         ax.plot([pos[0] for pos in path[i][0:num]], [pos[1] for pos in path[i][0:num]], [pos[2] for pos in path[i][0:num]])
 
+if __name__ == '__main__':
+    with Pool(5) as pool:
+        dt = 0.1
+        for frame in range(length):
+            tasks = [(i, pos, vel, mass, dt) for i in range(n)]
+            results = pool.map(step_i, tasks)
+            print(results[25])
+            for i, pos_i, vel_i, mass_i in results:
+                pos[i] = pos_i
+                vel[i] = vel_i
+                mass[i] = mass_i
 
-fig = plt.figure(dpi=100)
-ax = fig.add_subplot(projection='3d')
+# fig = plt.figure(dpi=100)
+# ax = fig.add_subplot(projection='3d')
 
-ani = FuncAnimation(fig = fig, func = update, frames = length, interval = 10, repeat = False)
+# ani = FuncAnimation(fig = fig, func = update, frames = length, interval = 10, repeat = False)
 
-plt.show()
+# plt.show()
