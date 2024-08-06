@@ -28,20 +28,20 @@ def remove(arr, i):
     return arr2
 
 def a(i, pos, mass):
-    a = 0
     pos_i = pos[i]
     pos_j = np.delete(pos, i, 0)
     mass_j = np.delete(mass, i, 0)
     r = pos_j - pos_i
     r3 = np.sum(r**2, axis=1)**(3/2)
-    a = G*np.sum(r*(mass_j/r3)[:,np.newaxis], axis=0)
-    return a
+    a_i = G*np.sum(r*(mass_j/r3)[:,np.newaxis], axis=0)
+    return a_i
 
 def step_i(args):
-    i, pos1, vel1, mass, dt = args
-    vel = vel1+a(i, pos1, mass)*dt
-    pos = pos1+vel*dt
-    return (i, pos, vel, mass)
+    i, pos, vel, mass, dt = args
+    vel_i = vel[i]+a(i, pos, mass)*dt
+    pos_i = pos[i]+vel_i*dt
+    mass_i = mass[i]
+    return (i, pos_i, vel_i, mass_i)
 
 def update(num):
     ax.cla()
@@ -65,7 +65,6 @@ if __name__ == '__main__':
         for frame in range(length):
             tasks = [(i, pos, vel, mass, dt) for i in range(n)]
             results = pool.map(step_i, tasks)
-            print(results[25])
             for i, pos_i, vel_i, mass_i in results:
                 pos[i] = pos_i
                 vel[i] = vel_i
