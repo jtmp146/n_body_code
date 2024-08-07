@@ -23,6 +23,6 @@ def update(num):
 fig = plt.figure(dpi=100)
 ax = fig.add_subplot(projection='3d')
 
-ani = FuncAnimation(fig = fig, func = update, frames = len(lines), interval = 1, repeat = False)
+ani = FuncAnimation(fig = fig, func = update, frames = len(lines), interval = 0, repeat = False)
 
 plt.show()
