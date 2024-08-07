@@ -3,7 +3,7 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 
 fig_size = 15
-fix_axes = False
+fix_axes = True
 
 with open("n_body.txt") as data:
     lines = data.readlines()

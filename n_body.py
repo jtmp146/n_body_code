@@ -14,13 +14,10 @@ mass_max = 1
 mass_min = 1
 G = 2.5
 length = 500
-merge_dist = 5
 
-# path = np.zeros(shape=(n, length, 3))
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
 vel = np.random.uniform(-vel_range, vel_range, size=(n, 3))
 mass = np.random.uniform(mass_min, mass_max, size=(n))
-# deleted = []
 
 def size(mass_i):
     return 200*mass_i**(1/3)
@@ -58,10 +55,13 @@ def a(i, pos, mass):
 
 def step_i(args):
     i, pos, vel, mass, dt = args
+    r = np.delete(pos, i, 0) - pos[i]
+    if np.min(r) 
     vel_i = vel[i]+a(i, pos, mass)*dt
     pos_i = pos[i]+vel_i*dt
     mass_i = mass[i]
-    return (i, pos_i, vel_i, mass_i)
+    result = (i, pos_i, vel_i, mass_i)
+    return result
 
 if __name__ == '__main__':
     start = t.time()
