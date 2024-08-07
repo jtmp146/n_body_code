@@ -14,21 +14,26 @@ mass_max = 1
 mass_min = 1
 G = 2.5
 length = 500
+merge_dist = 5
 
-path = np.zeros(shape=(n, length, 3))
+# path = np.zeros(shape=(n, length, 3))
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
 vel = np.random.uniform(-vel_range, vel_range, size=(n, 3))
 mass = np.random.uniform(mass_min, mass_max, size=(n))
-deleted = []
+# deleted = []
 
 def size(mass_i):
     return 200*mass_i**(1/3)
 
 def v_str(v):
-    return f"{v[0]} {v[1]} {v[2]}" 
+    if len(v) == 3:
+        result = f"{v[0]} {v[1]} {v[2]}"
+    else:
+        result = str(v)
+    return  result
 
 def csv(pos, mass):
-    line = ",".join([v_str(pos[i]).replace("[", "").replace("]", "")+" {}".format(size(mass[i])) for i in range(n)])
+    line = ",".join([v_str(pos[i]).replace("[", "").replace("]", "")+f" {size(mass[i])}" for i in range(n)])
     return line+"\n"
 
 def remove(arr, i):
@@ -40,12 +45,15 @@ def remove(arr, i):
     return arr2
 
 def a(i, pos, mass):
-    pos_i = pos[i]
-    pos_j = np.delete(pos, i, 0)
-    mass_j = np.delete(mass, i, 0)
-    r = pos_j - pos_i
-    r3 = np.sum(r**2, axis=1)**(3/2)
-    a_i = G*np.sum(r*(mass_j/r3)[:,np.newaxis], axis=0)
+    if mass[i] != 0:
+        pos_i = pos[i]
+        pos_j = np.delete(pos, i, 0)
+        mass_j = np.delete(mass, i, 0)
+        r = pos_j - pos_i
+        r3 = np.sum(r**2, axis=1)**(3/2)
+        a_i = G*np.sum(r*(mass_j/r3)[:,np.newaxis], axis=0)
+    else:
+        a_i = 0
     return a_i
 
 def step_i(args):
