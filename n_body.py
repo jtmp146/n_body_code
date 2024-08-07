@@ -5,7 +5,7 @@ from multiprocessing import Pool
 import time as t
 import os
 
-np.random.seed(19680807)
+# np.random.seed(19680807)
 
 n = 25
 start_range = 15
@@ -22,7 +22,7 @@ mass = np.random.uniform(mass_min, mass_max, size=(n))
 deleted = []
 
 def size(mass_i):
-    return 2*mass_i**(1/3)
+    return 200*mass_i**(1/3)
 
 def v_str(v):
     return f"{v[0]} {v[1]} {v[2]}" 
@@ -55,22 +55,6 @@ def step_i(args):
     mass_i = mass[i]
     return (i, pos_i, vel_i, mass_i)
 
-def update(num):
-    ax.cla()
-    dt = 0.1
-    t = num*dt
-    tasks = [(i, pos, vel, mass) for i in range(n)]
-    results = []
-    if __name__ == '__main__':
-        with Pool(4) as pool:
-            results = pool.map(update_i, tasks)
-    for i, pos_i, vel_i in results:
-        pos[i] = pos_i
-        vel[i] = vel_i
-        path[i][num] = pos[i]
-        ax.scatter(pos[i][0], pos[i][1], pos[i][2], s=100*mass[i]**(1/3), marker="o")
-        ax.plot([pos[0] for pos in path[i][0:num]], [pos[1] for pos in path[i][0:num]], [pos[2] for pos in path[i][0:num]])
-
 if __name__ == '__main__':
     start = t.time()
     with Pool(5) as pool:
@@ -81,7 +65,6 @@ if __name__ == '__main__':
         
         f = open("n_body.txt", "a")
 
-        f.write(f"{length},{n}\n")
         for frame in range(length):
             tasks = [(i, pos, vel, mass, dt) for i in range(n)]
             results = pool.map(step_i, tasks)
@@ -93,10 +76,3 @@ if __name__ == '__main__':
         f.close()
     stop = t.time()
     print("Runtime:", stop-start)
-
-# fig = plt.figure(dpi=100)
-# ax = fig.add_subplot(projection='3d')
-
-# ani = FuncAnimation(fig = fig, func = update, frames = length, interval = 10, repeat = False)
-
-# plt.show()

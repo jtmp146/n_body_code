@@ -1,32 +1,28 @@
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.animation import FuncAnimation
 
 with open("n_body.txt") as data:
     lines = data.readlines()
 
-length, n = [int(val) for val in lines[0].replace("\n", "").split(",")]
-pos = np.empty(shape=(length, n, 3))
-size = np.empty(shape=(length, n))
+point_hist = []
 
-for i in range(1, length+1):
-    points = lines[i].split(",")
-    for j in range(n):
-        x, y, z, s = [float(val) for val in points[j].split(" ")]
-        pos[i-1][j] = [x, y, z]
-        size[i-1][j] = s
+for line in lines:
+    points = line.split(",")
+    point_step = []
+    for point in points:
+        x, y, z, s = [float(val) for val in point.split(" ")]
+        point_step.append([x, y, z, s])
+    point_hist.append(point_step)
 
-def update(num, pos=pos):
+def update(num):
     ax.cla()
-    pos_step = pos[num]
-    size_step = size[num]
-    for i in range(n):
-        pos = pos_step[i]
-        ax.scatter(pos[0], pos[1], pos[2], s=size_step[i], marker="o")
+    points = point_hist[num]
+    for point in points :
+        ax.scatter(point[0], point[1], point[2], s=point[3], marker="o")
 
 fig = plt.figure(dpi=100)
 ax = fig.add_subplot(projection='3d')
 
-ani = FuncAnimation(fig = fig, func = update, frames = length, interval = 10, repeat = False)
+ani = FuncAnimation(fig = fig, func = update, frames = len(lines), interval = 1, repeat = False)
 
 plt.show()
