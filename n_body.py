@@ -5,7 +5,7 @@ from multiprocessing import Pool
 import time as t
 import os
 
-# np.random.seed(19680807)
+np.random.seed(19680807)
 
 n = 25
 start_range = 15
@@ -21,10 +21,14 @@ vel = np.random.uniform(-vel_range, vel_range, size=(n, 3))
 mass = np.random.uniform(mass_min, mass_max, size=(n))
 deleted = []
 
-def csv(pos):
-    line = ""
-    for vector in pos:
-        line += str(vector).replace("[", "").replace("]", "")+","
+def size(mass_i):
+    return 2*mass_i**(1/3)
+
+def v_str(v):
+    return f"{v[0]} {v[1]} {v[2]}" 
+
+def csv(pos, mass):
+    line = ",".join([v_str(pos[i]).replace("[", "").replace("]", "")+" {}".format(size(mass[i])) for i in range(n)])
     return line+"\n"
 
 def remove(arr, i):
@@ -68,8 +72,8 @@ def update(num):
         ax.plot([pos[0] for pos in path[i][0:num]], [pos[1] for pos in path[i][0:num]], [pos[2] for pos in path[i][0:num]])
 
 if __name__ == '__main__':
+    start = t.time()
     with Pool(5) as pool:
-        start = t.time()
         dt = 0.1
 
         if os.path.exists("n_body.txt"):
@@ -77,7 +81,7 @@ if __name__ == '__main__':
         
         f = open("n_body.txt", "a")
 
-        f.write("frame, position\n")
+        f.write(f"{length},{n}\n")
         for frame in range(length):
             tasks = [(i, pos, vel, mass, dt) for i in range(n)]
             results = pool.map(step_i, tasks)
@@ -85,8 +89,8 @@ if __name__ == '__main__':
                 pos[i] = pos_i
                 vel[i] = vel_i
                 mass[i] = mass_i
-            f.write(csv(pos))
-    f.close()
+            f.write(csv(pos, mass))
+        f.close()
     stop = t.time()
     print("Runtime:", stop-start)
 
