@@ -22,6 +22,9 @@ mass = np.random.uniform(mass_min, mass_max, size=(n))
 def size(mass_i):
     return 200*mass_i**(1/3)
 
+def mag(v):
+    return np.sqrt(v[0]**2+v[1]**2+v[2]**2)
+
 def v_str(v):
     if len(v) == 3:
         result = f"{v[0]} {v[1]} {v[2]}"
@@ -55,8 +58,12 @@ def a(i, pos, mass):
 
 def step_i(args):
     i, pos, vel, mass, dt = args
-    r = np.delete(pos, i, 0) - pos[i]
-    if np.min(r) 
+    # pos_j = np.delete(pos, i, 0)
+    # mass_j = np.delete(mass, i, 0)
+    # for j in len(pos_j):
+    #     if mag(pos[j]-pos[i]) < mass[j]**(1/3)+mass[i]**(1/3):
+    #         if mass[i] >= mass[j]:
+
     vel_i = vel[i]+a(i, pos, mass)*dt
     pos_i = pos[i]+vel_i*dt
     mass_i = mass[i]
