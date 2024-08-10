@@ -9,7 +9,7 @@ import os
 # np.random.seed(19680807)
 
 n = 25
-start_range = 15
+start_range = 10
 vel_range = 1
 mass_max = 1
 mass_min = 1
@@ -97,7 +97,7 @@ def step_i(args):
         if i != j:
             r = mag(pos[j] - pos[i])
             d = mass[i]**(1/3)+mass[j]**(1/3)
-            if r <= d:
+            if r < d:
                 if i > j:
                     new_mergers.append((i,j))
                 else:
