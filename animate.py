@@ -3,9 +3,10 @@ from matplotlib.animation import FuncAnimation
 import numpy as np
 
 fig_size = 15
-fix_axes = True
+fix_axes = False
+source = "n_body.txt"
 
-with open("n_body.txt") as data:
+with open(source) as data:
     lines = data.readlines()
 
 point_hist = []
