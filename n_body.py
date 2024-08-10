@@ -23,7 +23,7 @@ mass = np.random.uniform(mass_min, mass_max, size=(n))
 mergers = set()
 
 def size(mass_i):
-    return 200*mass_i**(1/3)
+    return 100*mass_i**(1/3)
 
 def mag(v):
     return np.sum(v**2)**0.5
