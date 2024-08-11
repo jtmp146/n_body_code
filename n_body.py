@@ -14,7 +14,7 @@ vel_range = 1
 mass_max = 1
 mass_min = 1
 G = 2.5
-length = 700
+length = 500
 processes = 3
 
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
@@ -78,9 +78,18 @@ def merge_ij(i, j, mass, vel):
             vel_i = np.array([0.0, 0.0, 0.0])
     return mass_i, vel_i
 
+# probably doesn't work
+def rk4(vel, a, i, pos, mass, h):
+    k1 = a(i, pos, mass)
+    k2 = a(i, pos+0.5*h*k1, mass)
+    k3 = a(i, pos+0.5*h*k2, mass)
+    k4 = a(i, pos+h*k3, mass)
+    return vel[i] + h/6*(k1+2*k2+2*k3+k4)
+
 def step_i(args):
     i, pos, vel, mass, dt, mergers = args
     vel_i = vel[i]+a(i, pos, mass)*dt
+    # vel_i = rk4(vel, a, i, pos, mass, dt)
     mass_i = mass[i]
     pos_i = pos[i]+vel_i*dt
 
