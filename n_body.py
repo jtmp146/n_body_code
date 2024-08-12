@@ -6,7 +6,7 @@ import time as t
 import os
 
 # For testing
-# np.random.seed(19680807)
+np.random.seed(19680807)
 
 n = 25
 start_range = 10
@@ -125,14 +125,17 @@ if __name__ == '__main__':
         f = open("n_body.txt", "a")
 
         for frame in range(length):
+            print(np.max(mass))
+            print(mergers)
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
             for i, pos_i, vel_i, mass_i, new_mergers in results:
                 pos[i] = pos_i
                 vel[i] = vel_i
                 mass[i] = mass_i
-                for merger in new_mergers:
-                    mergers.add(merger)
+                mergers = new_mergers
+                # for merger in new_mergers:
+                #     mergers.add(merger)
             f.write(csv(pos, mass))
         f.close()
     stop = t.time()
