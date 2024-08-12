@@ -83,7 +83,6 @@ def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
 def step_i(args):
     i, pos, vel, mass, dt, mergers = args
     vel_i = vel[i]+a(i, pos, mass)*dt
-    # vel_i = rk4(vel, a, i, pos, mass, dt)
     mass_i = mass[i]
     pos_i = pos[i]+vel_i*dt
 
@@ -125,8 +124,6 @@ if __name__ == '__main__':
                 vel[i] = vel_i
                 mass[i] = mass_i
                 mergers = new_mergers
-                # for merger in new_mergers:
-                #     mergers.add(merger)
             f.write(csv(pos, mass))
         f.close()
     stop = t.time()
