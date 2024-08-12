@@ -4,6 +4,7 @@ import numpy as np
 
 fig_size = 15
 fix_axes = False
+cut_lines = 600
 source = "n_body.txt"
 
 with open(source) as data:
@@ -37,6 +38,6 @@ def update(num):
 fig = plt.figure(dpi=100)
 ax = fig.add_subplot(projection='3d')
 
-ani = FuncAnimation(fig = fig, func = update, frames = len(lines), interval = 0, repeat = False)
+ani = FuncAnimation(fig = fig, func = update, frames = len(lines)-cut_lines, interval = 0, repeat = False)
 
 plt.show()

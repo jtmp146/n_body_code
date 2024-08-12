@@ -6,15 +6,15 @@ import time as t
 import os
 
 # For testing
-np.random.seed(19680807)
+# np.random.seed(19680809)
 
 n = 25
-start_range = 10
+start_range = 15
 vel_range = 1
 mass_max = 1
 mass_min = 1
 G = 2.5
-length = 500
+length = 1000
 processes = 3
 
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
@@ -59,32 +59,26 @@ def a(i, pos, mass):
         a_i = np.array([0.0, 0.0, 0.0])
     return a_i
 
-def merge_ij(i, j, mass, vel):
-    if mass[i] > mass[j]:
-        mass_i = mass[i] + mass[j]
-        vel_i = (mass[i]*vel[i]+mass[j]*vel[j])/(mass_i)
-    elif mass[i] < mass[j]:
+def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
+    print(f"Merger of mass {i} ({mass[i]}) and mass {j} ({mass[j]})")
+    if init_mass_i > mass[j]:
+        mass_i = init_mass_i + mass[j]
+        vel_i = (init_mass_i*init_vel_i+mass[j]*vel[j])/(mass_i)
+    elif init_mass_i < mass[j]:
         mass_i = 0.0
         vel_i = np.array([0.0, 0.0, 0.0])
     else:
         if i > j:
-            mass_i = mass[i] + mass[j]
+            mass_i = init_mass_i + mass[j]
             if mass_i != 0:
-                vel_i = (mass[i]*vel[i]+mass[j]*vel[j])/(mass_i)
+                vel_i = (init_mass_i*init_vel_i+mass[j]*vel[j])/(mass_i)
             else:
                 vel_i = 0
         else:
             mass_i = 0.0
             vel_i = np.array([0.0, 0.0, 0.0])
+    print(f"Mass of mass {i}: {mass_i}")
     return mass_i, vel_i
-
-# probably doesn't work
-def rk4(vel, a, i, pos, mass, h):
-    k1 = a(i, pos, mass)
-    k2 = a(i, pos+0.5*h*k1, mass)
-    k3 = a(i, pos+0.5*h*k2, mass)
-    k4 = a(i, pos+h*k3, mass)
-    return vel[i] + h/6*(k1+2*k2+2*k3+k4)
 
 def step_i(args):
     i, pos, vel, mass, dt, mergers = args
@@ -96,21 +90,20 @@ def step_i(args):
     for merger in mergers:
         if i in merger:
             j = merger[int(merger.index(i) != 1)]
-            mass_i, vel_i = merge_ij(i, j, mass, vel)
-            break
+            mass_i, vel_i = merge_ij(i, j, mass_i, mass, vel_i, vel)
         else:
             ()
 
-    new_mergers = []
+    new_mergers = set()
     for j in range(pos.shape[0]):
         if i != j:
             r = mag(pos[j] - pos[i])
             d = mass[i]**(1/3)+mass[j]**(1/3)
-            if r < d:
+            if r < 1.5*d:
                 if i > j:
-                    new_mergers.append((i,j))
+                    new_mergers.add((i,j))
                 else:
-                    new_mergers.append((j,i))
+                    new_mergers.add((j,i))
     result = (i, pos_i, vel_i, mass_i, new_mergers)
     return result
 
@@ -125,8 +118,6 @@ if __name__ == '__main__':
         f = open("n_body.txt", "a")
 
         for frame in range(length):
-            print(np.max(mass))
-            print(mergers)
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
             for i, pos_i, vel_i, mass_i, new_mergers in results:
