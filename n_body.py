@@ -6,7 +6,7 @@ import time as t
 import os
 
 # For testing
-# np.random.seed(19680809)
+# np.random.seed(19680811)
 
 n = 25
 start_range = 15
@@ -60,7 +60,7 @@ def a(i, pos, mass):
     return a_i
 
 def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
-    print(f"Merger of mass {i} ({mass[i]}) and mass {j} ({mass[j]})")
+    # print(f"Merger of mass {i} ({mass[i]}) and mass {j} ({mass[j]})")
     if init_mass_i > mass[j]:
         mass_i = init_mass_i + mass[j]
         vel_i = (init_mass_i*init_vel_i+mass[j]*vel[j])/(mass_i)
@@ -77,7 +77,7 @@ def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
         else:
             mass_i = 0.0
             vel_i = np.array([0.0, 0.0, 0.0])
-    print(f"Mass of mass {i}: {mass_i}")
+    # print(f"Mass of mass {i}: {mass_i}")
     return mass_i, vel_i
 
 def step_i(args):
@@ -88,22 +88,26 @@ def step_i(args):
 
     for merger in mergers:
         if i in merger:
+            # if i == 22 or i == 18:
+                # print(f"Merging {i}")
             j = merger[int(merger.index(i) != 1)]
             mass_i, vel_i = merge_ij(i, j, mass_i, mass, vel_i, vel)
         else:
             ()
 
-    new_mergers = set()
+    new_mergers = []
     for j in range(pos.shape[0]):
         if i != j:
             r = mag(pos[j] - pos[i])
             d = mass[i]**(1/3)+mass[j]**(1/3)
-            if r < 1.5*d:
+            if r < d:
                 if i > j:
-                    new_mergers.add((i,j))
+                    new_mergers.append((i,j))
                 else:
-                    new_mergers.add((j,i))
+                    new_mergers.append((j,i))
     result = (i, pos_i, vel_i, mass_i, new_mergers)
+    # if i == 22 or i == 18:
+        # print(f"Mergers for {i}: {new_mergers}")
     return result
 
 if __name__ == '__main__':
@@ -117,13 +121,19 @@ if __name__ == '__main__':
         f = open("n_body.txt", "a")
 
         for frame in range(length):
+            # print(f"Frame {frame}")
+            # print(f"Total Mergers: {mergers}")
+            # print(np.sum(mass))
+            # print(mag(pos[22] - pos[18]), mass[22]**(1/3) + mass[18]**(1/3))
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
+            mergers = set()
             for i, pos_i, vel_i, mass_i, new_mergers in results:
                 pos[i] = pos_i
                 vel[i] = vel_i
                 mass[i] = mass_i
-                mergers = new_mergers
+                for merger in new_mergers:
+                    mergers.add(merger)
             f.write(csv(pos, mass))
         f.close()
     stop = t.time()
