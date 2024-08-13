@@ -14,7 +14,7 @@ vel_range = 1
 mass_max = 1
 mass_min = 1
 G = 2.5
-length = 1000
+length = 5000
 processes = 3
 
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))

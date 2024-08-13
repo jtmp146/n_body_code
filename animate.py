@@ -4,7 +4,7 @@ import numpy as np
 
 fig_size = 15
 fix_axes = False
-cut_lines = 0
+cut_lines = 4500
 source = "n_body.txt"
 
 with open(source) as data:
