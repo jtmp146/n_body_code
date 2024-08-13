@@ -1,12 +1,10 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.animation import FuncAnimation
 from multiprocessing import Pool
 import time as t
 import os
 
 # For testing
-# np.random.seed(19680811)
+np.random.seed(1)
 
 n = 25
 start_range = 15
@@ -14,8 +12,8 @@ vel_range = 1
 mass_max = 1
 mass_min = 1
 G = 2.5
-length = 5000
-processes = 3
+length = 10
+processes = 4
 
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
 vel = np.random.uniform(-vel_range, vel_range, size=(n, 3))

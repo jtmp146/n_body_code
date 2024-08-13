@@ -4,7 +4,9 @@ import numpy as np
 
 fig_size = 15
 fix_axes = False
-cut_lines = 4500
+show_frames = False
+start = 9500
+length = 500
 source = "n_body.txt"
 
 with open(source) as data:
@@ -22,15 +24,18 @@ for line in lines:
 
 def update(num):
     ax.cla()
-    points = point_hist[num]
+    frame = num+start
+    points = point_hist[frame]
+    if show_frames:
+        print(f"Frame {frame}")
     for i in range(len(points)):
         point = points[i]
-        if i != 22 and i != 18:
-            ax.scatter(point[0], point[1], point[2], s=point[3], marker="o")
-        else:
-            ax.scatter(point[0], point[1], point[2], s=point[3], marker="*")
+        # if i != 22 and i != 18:
+        #     ax.scatter(point[0], point[1], point[2], s=point[3], marker="o")
+        # else:
+        ax.scatter(point[0], point[1], point[2], s=point[3], marker="o")
         if num > 0:
-            path = [points[i] for points in point_hist[:num+1]]
+            path = [points[i] for points in point_hist[:frame+1]]
             ax.plot([pos[0] for pos in path], [pos[1] for pos in path], [pos[2] for pos in path])
 
     if fix_axes:
@@ -41,6 +46,6 @@ def update(num):
 fig = plt.figure(dpi=100)
 ax = fig.add_subplot(projection='3d')
 
-ani = FuncAnimation(fig = fig, func = update, frames = len(lines)-cut_lines, interval = 0, repeat = False)
+ani = FuncAnimation(fig = fig, func = update, frames = length, interval = 0, repeat = False)
 
 plt.show()
