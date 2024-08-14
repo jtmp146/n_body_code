@@ -4,7 +4,11 @@ import time as t
 import os
 
 # For testing
-np.random.seed(1)
+# np.random.seed(156110)
+
+# start_seed = np.random.randint(low=1000000, size=1)
+# np.random.seed(start_seed)
+# print(f"Start seed: {start_seed}")
 
 n = 25
 start_range = 15
@@ -12,7 +16,7 @@ vel_range = 1
 mass_max = 1
 mass_min = 1
 G = 2.5
-length = 10
+length = 10000
 processes = 4
 
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
