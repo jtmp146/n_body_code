@@ -4,19 +4,19 @@ import time as t
 import os
 
 # For testing
-# np.random.seed(156110)
+np.random.seed(156110)
 
 # start_seed = np.random.randint(low=1000000, size=1)
 # np.random.seed(start_seed)
 # print(f"Start seed: {start_seed}")
 
 n = 25
-start_range = 15
+start_range = 5
 vel_range = 1
 mass_max = 1
 mass_min = 1
 G = 2.5
-length = 10000
+length = 20
 processes = 4
 
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
@@ -62,7 +62,7 @@ def a(i, pos, mass):
     return a_i
 
 def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
-    # print(f"Merger of mass {i} ({mass[i]}) and mass {j} ({mass[j]})")
+    print(f"Merger of mass {i} ({init_mass_i}) and mass {j} ({mass[j]})")
     if init_mass_i > mass[j]:
         mass_i = init_mass_i + mass[j]
         vel_i = (init_mass_i*init_vel_i+mass[j]*vel[j])/(mass_i)
@@ -80,6 +80,7 @@ def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
             mass_i = 0.0
             vel_i = np.array([0.0, 0.0, 0.0])
     # print(f"Mass of mass {i}: {mass_i}")
+    print(f"\tMass {i} change: {mass_i-init_mass_i}")
     return mass_i, vel_i
 
 def step_i(args):
@@ -123,10 +124,8 @@ if __name__ == '__main__':
         f = open("n_body.txt", "a")
 
         for frame in range(length):
-            # print(f"Frame {frame}")
-            # print(f"Total Mergers: {mergers}")
-            # print(np.sum(mass))
-            # print(mag(pos[22] - pos[18]), mass[22]**(1/3) + mass[18]**(1/3))
+            total_mass = np.sum(mass)
+            old_mergers = mergers
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
             mergers = set()
@@ -136,7 +135,12 @@ if __name__ == '__main__':
                 mass[i] = mass_i
                 for merger in new_mergers:
                     mergers.add(merger)
+            if total_mass != np.sum(mass):
+                print(f"Frame {frame}")
+                print(f"Mass change: {np.sum(mass)-total_mass}")
+                print(f"Total Mergers: {old_mergers}")
             f.write(csv(pos, mass))
+            print()
         f.close()
     stop = t.time()
     print("Runtime:", stop-start)

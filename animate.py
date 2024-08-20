@@ -5,9 +5,9 @@ import numpy as np
 fig_size = 15
 fix_axes = False
 show_frames = False
-start = 3500
-length = 500
-source = "Saved Animations/Cataclysm.txt"
+start = 0
+length = 17
+source = "n_body.txt"
 
 with open(source) as data:
     lines = data.readlines()
