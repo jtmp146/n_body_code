@@ -83,6 +83,41 @@ def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
     print(f"\tMass {i} change: {mass_i-init_mass_i}")
     return mass_i, vel_i
 
+def merge_i(i, merger, mass, vel):
+    mass_i = mass[i]
+    vel_i = vel[i]
+    for j in merger:
+        if i != j:
+            if mass[i] > mass[j]:
+                mass_i += mass[j]
+                vel_i = (mass_i*vel_i+mass[j]*vel[j])/mass_i
+            elif mass[i] < mass[j]:
+                mass_i = 0.0
+                break
+            else:
+                if i > j:
+                    mass_i += mass[j]
+                else:
+                    mass_i = 0.0
+                    break
+    return mass_i, vel_i
+
+def concat_mergers(mergers):
+    new_mergers = set()
+    for merger1 in mergers:
+        for merger2 in mergers:
+            set1 = set(merger1)
+            set2 = set(merger2)
+            if not set1.isdisjoint(set2):
+                merger1 = tuple(set1.union(set2))
+            else:
+                ()
+        new_mergers.add(merger1)
+    if new_mergers == mergers:
+        return new_mergers
+    else:
+        return concat_mergers(new_mergers)
+
 def step_i(args):
     i, pos, vel, mass, dt, mergers = args
     vel_i = vel[i]+a(i, pos, mass)*dt
@@ -91,26 +126,18 @@ def step_i(args):
 
     for merger in mergers:
         if i in merger:
-            # if i == 22 or i == 18:
-                # print(f"Merging {i}")
             j = merger[int(merger.index(i) != 1)]
             mass_i, vel_i = merge_ij(i, j, mass_i, mass, vel_i, vel)
         else:
             ()
 
-    new_mergers = []
-    for j in range(pos.shape[0]):
-        if i != j:
-            r = mag(pos[j] - pos[i])
-            d = mass[i]**(1/3)+mass[j]**(1/3)
-            if r < d:
-                if i > j:
-                    new_mergers.append((i,j))
-                else:
-                    new_mergers.append((j,i))
-    result = (i, pos_i, vel_i, mass_i, new_mergers)
-    # if i == 22 or i == 18:
-        # print(f"Mergers for {i}: {new_mergers}")
+    merger_i = [i]
+    for j in range(n):
+        r = mag(pos[j] - pos[i])
+        d = mass[i]**(1/3)+mass[j]**(1/3)
+        if r < d:
+            merger_i.append(j)
+    result = (i, pos_i, vel_i, mass_i, tuple(merger_i))
     return result
 
 if __name__ == '__main__':
@@ -126,6 +153,7 @@ if __name__ == '__main__':
         for frame in range(length):
             total_mass = np.sum(mass)
             old_mergers = mergers
+            mergers = concat_mergers(mergers)
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
             mergers = set()
