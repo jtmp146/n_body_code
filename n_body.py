@@ -4,19 +4,19 @@ import time as t
 import os
 
 # For testing
-np.random.seed(156110)
+# np.random.seed(156110)
 
 # start_seed = np.random.randint(low=1000000, size=1)
 # np.random.seed(start_seed)
 # print(f"Start seed: {start_seed}")
 
 n = 25
-start_range = 10
+start_range = 15
 vel_range = 1
 mass_max = 1
 mass_min = 1
 G = 2.5
-length = 500
+length = 10000
 processes = 4
 
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
@@ -83,9 +83,9 @@ def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
     print(f"\tMass {i} change: {mass_i-init_mass_i}")
     return mass_i, vel_i
 
-def merge_i(i, merger, mass, vel):
-    mass_i = mass[i]
-    vel_i = vel[i]
+def merge_i(i, init_vel_i, init_mass_i, merger, mass, vel):
+    mass_i = init_mass_i
+    vel_i = init_vel_i
     for j in merger:
         if i != j and mass[i] != 0:
             if mass[i] > mass[j]:
@@ -136,14 +136,18 @@ def step_i(args):
 
     for merger in mergers:
         if i in merger:
-            mass_i, vel_i = merge_i(i, merger, mass, vel)
+            mass_i, vel_i = merge_i(i, vel_i, mass_i, merger, mass, vel)
 
-    merger_i = [i]
+    merger_i = []
     for j in range(n):
         r = mag(pos[j] - pos[i])
         d = mass[i]**(1/3)+mass[j]**(1/3)
-        if r < d:
+        if r < d and j != i:
             merger_i.append(j)
+
+    if len(merger_i) > 0:
+        merger_i.append(i)
+
     result = (i, pos_i, vel_i, mass_i, tuple(merger_i))
     return result
 
@@ -159,7 +163,7 @@ if __name__ == '__main__':
 
         for frame in range(length):
             total_mass = np.sum(mass)
-            # old_mergers = mergers
+            old_mergers = mergers
             mergers = concat_mergers(mergers)
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
