@@ -11,12 +11,12 @@ np.random.seed(156110)
 # print(f"Start seed: {start_seed}")
 
 n = 25
-start_range = 5
+start_range = 10
 vel_range = 1
 mass_max = 1
 mass_min = 1
 G = 2.5
-length = 20
+length = 500
 processes = 4
 
 pos = np.random.uniform(-start_range, start_range, size=(n, 3))
@@ -87,18 +87,21 @@ def merge_i(i, merger, mass, vel):
     mass_i = mass[i]
     vel_i = vel[i]
     for j in merger:
-        if i != j:
+        if i != j and mass[i] != 0:
             if mass[i] > mass[j]:
                 mass_i += mass[j]
                 vel_i = (mass_i*vel_i+mass[j]*vel[j])/mass_i
             elif mass[i] < mass[j]:
                 mass_i = 0.0
+                vel_i = [0.0, 0.0, 0.0]
                 break
             else:
                 if i > j:
                     mass_i += mass[j]
+                    vel_i = (mass_i*vel_i+mass[j]*vel[j])/mass_i
                 else:
                     mass_i = 0.0
+                    vel_i = [0.0, 0.0, 0.0]
                     break
     return mass_i, vel_i
 
@@ -124,12 +127,16 @@ def step_i(args):
     mass_i = mass[i]
     pos_i = pos[i]+vel_i*dt
 
+    # for merger in mergers:
+    #     if i in merger:
+    #         j = merger[int(merger.index(i) != 1)]
+    #         mass_i, vel_i = merge_ij(i, j, mass_i, mass, vel_i, vel)
+    #     else:
+    #         ()
+
     for merger in mergers:
         if i in merger:
-            j = merger[int(merger.index(i) != 1)]
-            mass_i, vel_i = merge_ij(i, j, mass_i, mass, vel_i, vel)
-        else:
-            ()
+            mass_i, vel_i = merge_i(i, merger, mass, vel)
 
     merger_i = [i]
     for j in range(n):
@@ -152,23 +159,22 @@ if __name__ == '__main__':
 
         for frame in range(length):
             total_mass = np.sum(mass)
-            old_mergers = mergers
+            # old_mergers = mergers
             mergers = concat_mergers(mergers)
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
             mergers = set()
-            for i, pos_i, vel_i, mass_i, new_mergers in results:
+            for i, pos_i, vel_i, mass_i, new_merger in results:
                 pos[i] = pos_i
                 vel[i] = vel_i
                 mass[i] = mass_i
-                for merger in new_mergers:
-                    mergers.add(merger)
+                mergers.add(new_merger)
             if total_mass != np.sum(mass):
                 print(f"Frame {frame}")
                 print(f"Mass change: {np.sum(mass)-total_mass}")
                 print(f"Total Mergers: {old_mergers}")
             f.write(csv(pos, mass))
-            print()
+            # print()
         f.close()
     stop = t.time()
     print("Runtime:", stop-start)

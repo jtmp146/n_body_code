@@ -6,7 +6,7 @@ fig_size = 15
 fix_axes = False
 show_frames = False
 start = 0
-length = 17
+length = 500
 source = "n_body.txt"
 
 with open(source) as data:
