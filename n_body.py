@@ -4,7 +4,7 @@ import time as t
 import os
 
 # For testing
-# np.random.seed(156110)
+np.random.seed(156110)
 
 # start_seed = np.random.randint(low=1000000, size=1)
 # np.random.seed(start_seed)
@@ -84,8 +84,8 @@ def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
     return mass_i, vel_i
 
 def merge_i(i, init_vel_i, init_mass_i, merger, mass, vel):
-    mass_i = init_mass_i
-    vel_i = init_vel_i
+    mass_i = mass[i]
+    vel_i = vel[i]
     for j in merger:
         if i != j and mass[i] != 0:
             if mass[i] > mass[j]:
@@ -109,10 +109,8 @@ def concat_mergers(mergers):
     new_mergers = set()
     for merger1 in mergers:
         for merger2 in mergers:
-            set1 = set(merger1)
-            set2 = set(merger2)
-            if not set1.isdisjoint(set2):
-                merger1 = tuple(set1.union(set2))
+            if not merger1.isdisjoint(merger2):
+                merger1 = merger1.union(merger2)
             else:
                 ()
         new_mergers.add(merger1)
@@ -148,7 +146,7 @@ def step_i(args):
     if len(merger_i) > 0:
         merger_i.append(i)
 
-    result = (i, pos_i, vel_i, mass_i, tuple(merger_i))
+    result = (i, pos_i, vel_i, mass_i, frozenset(merger_i))
     return result
 
 if __name__ == '__main__':
@@ -160,11 +158,13 @@ if __name__ == '__main__':
             os.remove("n_body.txt")
         
         f = open("n_body.txt", "a")
+        
+        init_momentum = np.sum(vel*mass[:,np.newaxis])
 
         for frame in range(length):
             total_mass = np.sum(mass)
-            old_mergers = mergers
             mergers = concat_mergers(mergers)
+            old_mergers = mergers
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
             mergers = set()
@@ -180,5 +180,7 @@ if __name__ == '__main__':
             f.write(csv(pos, mass))
             # print()
         f.close()
+        print(f"Initial momentum: {init_momentum}")
+        print(f"Momentum change: {np.sum(vel*mass[:,np.newaxis])-init_momentum}")
     stop = t.time()
     print("Runtime:", stop-start)

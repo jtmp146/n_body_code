@@ -5,8 +5,8 @@ import numpy as np
 fig_size = 15
 fix_axes = False
 show_frames = False
-start = 9990
-length = 10
+start = 0
+length = 500
 source = "n_body.txt"
 
 with open(source) as data:
