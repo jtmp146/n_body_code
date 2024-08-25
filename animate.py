@@ -5,8 +5,8 @@ import numpy as np
 fig_size = 15
 fix_axes = False
 show_frames = False
-start = 0
-length = 500
+start = 9990
+length = 10
 source = "n_body.txt"
 
 with open(source) as data:
@@ -30,10 +30,10 @@ def update(num):
         print(f"Frame {frame}")
     for i in range(len(points)):
         point = points[i]
-        # if i != 22 and i != 18:
-        #     ax.scatter(point[0], point[1], point[2], s=point[3], marker="o")
-        # else:
-        ax.scatter(point[0], point[1], point[2], s=point[3], marker="o")
+        if i != 12 and i != 4:
+            ax.scatter(point[0], point[1], point[2], s=point[3], marker="o")
+        else:
+            ax.scatter(point[0], point[1], point[2], s=point[3], marker="*")
         if num > 0:
             path = [points[i] for points in point_hist[:frame+1]]
             ax.plot([pos[0] for pos in path], [pos[1] for pos in path], [pos[2] for pos in path])

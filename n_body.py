@@ -4,11 +4,7 @@ import time as t
 import os
 
 # For testing
-np.random.seed(156110)
-
-# start_seed = np.random.randint(low=1000000, size=1)
-# np.random.seed(start_seed)
-# print(f"Start seed: {start_seed}")
+# np.random.seed(156110)
 
 n = 25
 start_range = 15
@@ -83,26 +79,33 @@ def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
     print(f"\tMass {i} change: {mass_i-init_mass_i}")
     return mass_i, vel_i
 
-def merge_i(i, init_vel_i, init_mass_i, merger, mass, vel):
+def merge_i(i, merger, mass, vel):
+    # print(f"Merger: {merger}. Mass {i}: {mass[i]}. All masses: {[mass[j] for j in merger]}")
     mass_i = mass[i]
-    vel_i = vel[i]
-    for j in merger:
-        if i != j and mass[i] != 0:
-            if mass[i] > mass[j]:
-                mass_i += mass[j]
-                vel_i = (mass_i*vel_i+mass[j]*vel[j])/mass_i
-            elif mass[i] < mass[j]:
-                mass_i = 0.0
-                vel_i = [0.0, 0.0, 0.0]
-                break
-            else:
-                if i > j:
-                    mass_i += mass[j]
-                    vel_i = (mass_i*vel_i+mass[j]*vel[j])/mass_i
-                else:
-                    mass_i = 0.0
-                    vel_i = [0.0, 0.0, 0.0]
+    if mass[i] != 0.0:
+        for j in merger:
+            if i != j:
+                if mass[i] > mass[j]:
+                    biggest = True
+                elif mass[i] < mass[j]:
+                    biggest = False
                     break
+                else:
+                    if i > j:
+                        biggest = True
+                    else:
+                        biggest = False
+                        break
+    else:
+        biggest = False
+
+    if biggest:
+        mass_i = np.sum([mass[j] for j in merger])
+        vel_i = np.sum([vel[j]*mass[j] for j in merger], axis=0)/mass_i
+    else:
+        mass_i = 0
+        vel_i = [0.0, 0.0, 0.0]
+    # print("Done")
     return mass_i, vel_i
 
 def concat_mergers(mergers):
@@ -134,7 +137,7 @@ def step_i(args):
 
     for merger in mergers:
         if i in merger:
-            mass_i, vel_i = merge_i(i, vel_i, mass_i, merger, mass, vel)
+            mass_i, vel_i = merge_i(i, merger, mass, vel)
 
     merger_i = []
     for j in range(n):
@@ -159,12 +162,14 @@ if __name__ == '__main__':
         
         f = open("n_body.txt", "a")
         
-        init_momentum = np.sum(vel*mass[:,np.newaxis])
+        init_momentum = np.sum(vel*mass[:,np.newaxis], axis=0)
+        init_mass = np.sum(mass)
 
         for frame in range(length):
+            # print(frame)
             total_mass = np.sum(mass)
             mergers = concat_mergers(mergers)
-            old_mergers = mergers
+            # old_mergers = mergers
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
             mergers = set()
@@ -173,14 +178,14 @@ if __name__ == '__main__':
                 vel[i] = vel_i
                 mass[i] = mass_i
                 mergers.add(new_merger)
-            if total_mass != np.sum(mass):
-                print(f"Frame {frame}")
-                print(f"Mass change: {np.sum(mass)-total_mass}")
-                print(f"Total Mergers: {old_mergers}")
+            # if total_mass != np.sum(mass):
+            #     print(f"Frame {frame}")
+            #     print(f"Mass change: {np.sum(mass)-total_mass}")
+            #     print(f"Total Mergers: {old_mergers}")
             f.write(csv(pos, mass))
             # print()
         f.close()
-        print(f"Initial momentum: {init_momentum}")
-        print(f"Momentum change: {np.sum(vel*mass[:,np.newaxis])-init_momentum}")
+        print(f"Initial momentum: {init_momentum}. Initial mass: {init_mass}")
+        print(f"Momentum change: {np.sum(vel*mass[:,np.newaxis], axis=0)-init_momentum}. Mass change: {np.sum(mass)-init_mass}")
     stop = t.time()
     print("Runtime:", stop-start)
