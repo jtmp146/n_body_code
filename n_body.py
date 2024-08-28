@@ -6,25 +6,24 @@ import os
 # For testing
 # np.random.seed(156110)
 
+# Simulation parameters
 n = 25
-start_range = 15
+x_range = 15
+y_range = 15
+z_range = 15
 vel_range = 1
-mass_max = 1
-mass_min = 1
+mass_max = 0.1
+mass_min = 0.1
 G = 2.5
 length = 10000
 processes = 4
-
-pos = np.random.uniform(-start_range, start_range, size=(n, 3))
-vel = np.random.uniform(-vel_range, vel_range, size=(n, 3))
-mass = np.random.uniform(mass_min, mass_max, size=(n))
-mergers = set()
-
-def size(mass_i):
-    return 100*mass_i**(1/3)
+spinning = True
 
 def mag(v):
     return np.sum(v**2)**0.5
+
+def size(mass_i):
+    return 100*mass_i**(1/3)
 
 def v_str(v):
     if len(v) == 3:
@@ -37,14 +36,6 @@ def csv(pos, mass):
     line = ",".join([v_str(pos[i]).replace("[", "").replace("]", "")+f" {size(mass[i])}" for i in range(n)])
     return line+"\n"
 
-def remove(arr, i):
-    print(arr.shape, i)
-    shape = (arr.shape[0]-1, arr.shape[1:])
-    arr2 = np.zeros(shape=shape)
-    arr2[:i] = arr[:i]
-    arr2[i:] = arr[i+1:]
-    return arr2
-
 def a(i, pos, mass):
     if mass[i] != 0:
         pos_i = pos[i]
@@ -56,28 +47,6 @@ def a(i, pos, mass):
     else:
         a_i = np.array([0.0, 0.0, 0.0])
     return a_i
-
-def merge_ij(i, j, init_mass_i, mass, init_vel_i, vel):
-    print(f"Merger of mass {i} ({init_mass_i}) and mass {j} ({mass[j]})")
-    if init_mass_i > mass[j]:
-        mass_i = init_mass_i + mass[j]
-        vel_i = (init_mass_i*init_vel_i+mass[j]*vel[j])/(mass_i)
-    elif init_mass_i < mass[j]:
-        mass_i = 0.0
-        vel_i = np.array([0.0, 0.0, 0.0])
-    else:
-        if i > j:
-            mass_i = init_mass_i + mass[j]
-            if mass_i != 0:
-                vel_i = (init_mass_i*init_vel_i+mass[j]*vel[j])/(mass_i)
-            else:
-                vel_i = 0
-        else:
-            mass_i = 0.0
-            vel_i = np.array([0.0, 0.0, 0.0])
-    # print(f"Mass of mass {i}: {mass_i}")
-    print(f"\tMass {i} change: {mass_i-init_mass_i}")
-    return mass_i, vel_i
 
 def merge_i(i, merger, mass, vel):
     # print(f"Merger: {merger}. Mass {i}: {mass[i]}. All masses: {[mass[j] for j in merger]}")
@@ -151,6 +120,26 @@ def step_i(args):
 
     result = (i, pos_i, vel_i, mass_i, frozenset(merger_i))
     return result
+
+# Randomized setup
+x = np.random.uniform(-x_range, x_range, size=n)
+y = np.random.uniform(-y_range, y_range, size=n)
+z = np.random.uniform(-z_range, z_range, size=n)
+pos = np.stack((x, y, z), axis=1)
+vel = np.random.uniform(-vel_range, vel_range, size=(n, 3))
+mass = np.random.uniform(mass_min, mass_max, size=(n))
+mergers = set()
+
+# Spinning setup
+if spinning:
+    pos[0] = [0.0, 0.0, 0.0]
+    vel[0] = [0.0, 0.0, 0.0]
+    mass[0] = n*10
+
+    for i in range(1,n):
+        ax = [0, 0, 1]
+        unit_v = np.cross(pos[i], ax)/mag(np.cross(pos[i], ax))
+        vel[i] = unit_v*((G*mass[0]/mag(pos[i]))**0.5)
 
 if __name__ == '__main__':
     start = t.time()
