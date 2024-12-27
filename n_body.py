@@ -12,12 +12,12 @@ x_range = 15
 y_range = 15
 z_range = 15
 vel_range = 1
-mass_max = 0.1
-mass_min = 0.1
+mass_max = 1
+mass_min = 1
 G = 2.5
 length = 10000
 processes = 4
-spinning = True
+spinning = False
 
 def mag(v):
     return np.sum(v**2)**0.5
