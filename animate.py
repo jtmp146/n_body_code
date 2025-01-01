@@ -5,8 +5,8 @@ import numpy as np
 fig_size = 15
 fix_axes = False
 show_frames = False
-start = 0
-length = 1000
+start = 100
+length = 100
 source = "n_body.txt"
 
 with open(source) as data:
@@ -21,6 +21,8 @@ for line in lines:
         x, y, z, s = [float(val) for val in point.split(" ")]
         point_step.append([x, y, z, s])
     point_hist.append(point_step)
+
+n = len(point_hist[0])
 
 def update(num):
     ax.cla()
@@ -38,6 +40,11 @@ def update(num):
             path = [points[i] for points in point_hist[:frame+1]]
             ax.plot([pos[0] for pos in path], [pos[1] for pos in path], [pos[2] for pos in path])
 
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_zlabel("z")
+        ax.set_title(f"Motion of {n} massive bodies under gravity")
+
     if fix_axes:
         ax.set_xlim(-fig_size, fig_size)
         ax.set_ylim(-fig_size, fig_size)
@@ -45,6 +52,7 @@ def update(num):
 
 fig = plt.figure(dpi=100)
 ax = fig.add_subplot(projection='3d')
+
 
 ani = FuncAnimation(fig = fig, func = update, frames = length, interval = 0, repeat = False)
 
