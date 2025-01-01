@@ -20,12 +20,36 @@ processes = 4
 spinning = False
 
 def mag(v):
+    """Calculate magnitude of vector
+
+    Args:
+        v (numpy.ndarray): Vector
+
+    Returns:
+        float: Magnitude of vector
+    """    
     return np.sum(v**2)**0.5
 
 def size(mass_i):
+    """Calculate size of particle with given mass
+
+    Args:
+        mass_i (float): Particle mass
+
+    Returns:
+        float: Size of particle (for plotting)
+    """    
     return 100*mass_i**(1/3)
 
 def v_str(v):
+    """Write 3D vector as a string
+
+    Args:
+        v (numpy.ndarray): Vector (e.g. [x, y, z])
+
+    Returns:
+        str: String representation of vector (e.g. "x y z") or input casted to string if not a 3D array
+    """    
     if len(v) == 3:
         result = f"{v[0]} {v[1]} {v[2]}"
     else:
@@ -33,10 +57,29 @@ def v_str(v):
     return  result
 
 def csv(pos, mass):
+    """Save one timestep of simulation as a CSV
+
+    Args:
+        pos (numpy.ndarray): Positions of masses at timestep
+        mass (numpy.ndarray): Masses of masses at timestep
+
+    Returns:
+        str: line of CSV just written
+    """    
     line = ",".join([v_str(pos[i]).replace("[", "").replace("]", "")+f" {size(mass[i])}" for i in range(n)])
     return line+"\n"
 
 def a(i, pos, mass):
+    """Calculates acceleration of ith mass
+
+    Args:
+        i (int): Index of mass for which to calculate acceleration
+        pos (numpy.ndarray): Positions of masses at timestep
+        mass (numpy.ndarray): Masses of masses at timestep
+
+    Returns:
+        numpy.ndarray: Acceleration vector for ith mass
+    """    
     if mass[i] != 0:
         pos_i = pos[i]
         pos_j = np.delete(pos, i, 0)
@@ -49,7 +92,17 @@ def a(i, pos, mass):
     return a_i
 
 def merge_i(i, merger, mass, vel):
-    # print(f"Merger: {merger}. Mass {i}: {mass[i]}. All masses: {[mass[j] for j in merger]}")
+    """Calculate mass and velocity of ith mass after a merger with other masses
+
+    Args:
+        i (int): Index of mass
+        merger (set): Set of all masses taking part in the merger
+        mass (numpy.ndarray): Masses of masses at timestep
+        vel (numpy.ndarray): Velocities of masses at timestep
+
+    Returns:
+        tuple: New mass and velocity of ith mass
+    """    
     mass_i = mass[i]
     if mass[i] != 0.0:
         for j in merger:
@@ -74,10 +127,17 @@ def merge_i(i, merger, mass, vel):
     else:
         mass_i = 0
         vel_i = [0.0, 0.0, 0.0]
-    # print("Done")
     return mass_i, vel_i
 
 def concat_mergers(mergers):
+    """Combine detected merger events so no mass is involved in two mergers in a single timestep
+
+    Args:
+        mergers (list): array of merger sets
+
+    Returns:
+        list: array of merger sets that have been concatenated as described
+    """    
     new_mergers = set()
     for merger1 in mergers:
         for merger2 in mergers:
@@ -92,17 +152,18 @@ def concat_mergers(mergers):
         return concat_mergers(new_mergers)
 
 def step_i(args):
+    """Perform one simulation timestep on ith mass
+
+    Args:
+        args (tuple): Index of mass, its initial conditions, size of timestep and list of all merger events at this timestep
+
+    Returns:
+        tuple: Index of mass, conditions after timestep, set of masses ith mass will have to merge with in next timestep
+    """    
     i, pos, vel, mass, dt, mergers = args
     vel_i = vel[i]+a(i, pos, mass)*dt
     mass_i = mass[i]
     pos_i = pos[i]+vel_i*dt
-
-    # for merger in mergers:
-    #     if i in merger:
-    #         j = merger[int(merger.index(i) != 1)]
-    #         mass_i, vel_i = merge_ij(i, j, mass_i, mass, vel_i, vel)
-    #     else:
-    #         ()
 
     for merger in mergers:
         if i in merger:
@@ -155,10 +216,8 @@ if __name__ == '__main__':
         init_mass = np.sum(mass)
 
         for frame in range(length):
-            # print(frame)
             total_mass = np.sum(mass)
             mergers = concat_mergers(mergers)
-            # old_mergers = mergers
             tasks = [(i, pos, vel, mass, dt, mergers) for i in range(n)]
             results = pool.map(step_i, tasks)
             mergers = set()
@@ -167,12 +226,7 @@ if __name__ == '__main__':
                 vel[i] = vel_i
                 mass[i] = mass_i
                 mergers.add(new_merger)
-            # if total_mass != np.sum(mass):
-            #     print(f"Frame {frame}")
-            #     print(f"Mass change: {np.sum(mass)-total_mass}")
-            #     print(f"Total Mergers: {old_mergers}")
             f.write(csv(pos, mass))
-            # print()
         f.close()
         print(f"Initial momentum: {init_momentum}. Initial mass: {init_mass}")
         print(f"Momentum change: {np.sum(vel*mass[:,np.newaxis], axis=0)-init_momentum}. Mass change: {np.sum(mass)-init_mass}")
